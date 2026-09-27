@@ -13,6 +13,7 @@
 | [Voice Text Input](https://github.com/Voltur792/voice-text-input) | Печатает продиктованный текст в активное окно Windows. |
 | [Sleep Pause Timer](https://github.com/Voltur792/SPT) | Таймер, будильник и отслеживание бездействия с управлением через Astra. |
 | [Яндекс Умный дом](https://github.com/Voltur792/Y-home-f-astra) | Управляет устройствами Яндекс Умного дома через Astra. |
+| [Astra Browser Control](https://github.com/Voltur792/browser-control) | Управляет вкладками и видимыми элементами браузера голосом через Astra. |
 
 ## Отдельные приложения для Windows
 
