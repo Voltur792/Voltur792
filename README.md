@@ -6,10 +6,10 @@
 
 ## Игры для Astra
 
-| Игра | Что внутри | Расход ИИ | Загрузки релизов |
+| Игра | Что внутри | Расход ИИ | Релиз и загрузки |
 | --- | --- | --- | --- |
 | [Детективная игра](https://github.com/Voltur792/detective-game) | Расследуйте дела, осматривайте места и проверяйте версии — в Astra или Telegram. | Высокий | [![Загрузки](https://img.shields.io/github/downloads/Voltur792/detective-game/total?label=загрузки)](https://github.com/Voltur792/detective-game/releases) |
-| [Морской бой](https://github.com/Voltur792/astra-sea-battle) | Два режима: быстрая партия или игра против Astra на интерактивной карте. | Низкий–средний | [![Загрузки](https://img.shields.io/github/downloads/Voltur792/astra-sea-battle/total?label=загрузки)](https://github.com/Voltur792/astra-sea-battle/releases) |
+| [Морской бой](https://github.com/Voltur792/astra-sea-battle) | Два режима: быстрая партия или игра против Astra на интерактивной карте. | Низкий–средний | [![Релиз](https://img.shields.io/github/v/release/Voltur792/astra-sea-battle?label=релиз)](https://github.com/Voltur792/astra-sea-battle/releases/latest) [![Загрузки](https://img.shields.io/github/downloads/Voltur792/astra-sea-battle/total?label=загрузки)](https://github.com/Voltur792/astra-sea-battle/releases) |
 
 ## Плагины для Astra
 
