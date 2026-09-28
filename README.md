@@ -1,3 +1,5 @@
+![Баннер профиля Voltur](profile-banner-voltur.png)
+
 # Voltur
 
 Создаю игры и полезные инструменты для **Astra** и Windows.
