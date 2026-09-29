@@ -10,6 +10,7 @@ from urllib.request import Request, urlopen
 
 
 README = Path(__file__).resolve().parents[1] / "README.md"
+REGISTRY_URL = "https://mihailinl.github.io/astra-registry/registry/v1/index.json"
 INSTALLERS = {
     "detective-game": re.compile(r"\.astraplugin$"),
     "astra-sea-battle": re.compile(r"\.astraplugin$"),
@@ -22,14 +23,36 @@ INSTALLERS = {
     "VoiceTyper": re.compile(r"^VoiceTyper-v.+-windows-x64\.zip$"),
     "sleep-pause-timer": re.compile(r"^SleepPauseTimer-v.+-windows-x64\.zip$"),
 }
+WINDOWS_APPS = {"VoiceTyper", "sleep-pause-timer"}
 PROJECT_LINK = re.compile(r"\]\(https://github\.com/Voltur792/([^/)]+)\)")
 DOWNLOAD_BADGE = re.compile(
     r"https://img\.shields\.io/(?:"
     r"github/downloads/Voltur792/[^/)]+/total\?label=загрузки"
-    r"|badge/downloads-\d+-blue\?label=[^)]*)"
+    r"|badge/downloads-\d+-[a-z]+\?label=[^)]*)"
 )
 BADGE_LABEL = quote("загрузки")
 COUNTER_NOTE = re.compile(r"Счётчики показывают .*?в них не входят\.(?: Данные на \d{2}\.\d{2}\.\d{4} \(UTC\)\.)?")
+REGISTRY_NOTE = re.compile(r"Каталог Astra: .*?не плагин Astra\.")
+
+
+def registry_repositories() -> tuple[set[str], str]:
+    request = Request(
+        REGISTRY_URL,
+        headers={"User-Agent": "Voltur792-profile-download-counter"},
+    )
+    with urlopen(request, timeout=30) as response:
+        index = json.load(response)
+    signed = index["signed"]
+    issued_at = datetime.fromisoformat(signed["issued_at"].replace("Z", "+00:00"))
+    expires_at = datetime.fromisoformat(signed["expires_at"].replace("Z", "+00:00"))
+    if expires_at <= datetime.now(timezone.utc):
+        raise ValueError("Astra registry index has expired")
+    repositories = {
+        plugin["source"]["repo"].casefold()
+        for plugin in signed["plugins"]
+        if plugin.get("source", {}).get("repo")
+    }
+    return repositories, issued_at.strftime("%d.%m.%Y")
 
 
 def installer_downloads(repo: str, pattern: re.Pattern[str]) -> int:
@@ -61,8 +84,21 @@ def installer_downloads(repo: str, pattern: re.Pattern[str]) -> int:
         page += 1
 
 
+def download_color(count: int) -> str:
+    if count == 0:
+        return "red"
+    if count < 10:
+        return "yellow"
+    if count < 100:
+        return "yellowgreen"
+    if count < 1000:
+        return "green"
+    return "brightgreen"
+
+
 def main() -> None:
     original = README.read_text(encoding="utf-8")
+    catalog_repos, catalog_date = registry_repositories()
     updated_lines = []
     seen = set()
     for line in original.splitlines(keepends=True):
@@ -76,13 +112,28 @@ def main() -> None:
         if repo in seen:
             raise ValueError(f"Duplicate download badge for {repo}")
         count = installer_downloads(repo, INSTALLERS[repo])
-        badge = f"https://img.shields.io/badge/downloads-{count}-blue?label={BADGE_LABEL}"
+        color = download_color(count)
+        badge = f"https://img.shields.io/badge/downloads-{count}-{color}?label={BADGE_LABEL}"
         line, replacements = DOWNLOAD_BADGE.subn(badge, line)
         if replacements != 1:
             raise ValueError(f"Expected one download badge for {repo}, found {replacements}")
+        registry_status = (
+            "—" if repo in WINDOWS_APPS
+            else "✅ Да" if f"voltur792/{repo}".casefold() in catalog_repos
+            else "Нет"
+        )
+        cells = line.split(" | ")
+        if len(cells) == 4:
+            cells.insert(3, registry_status)
+        elif len(cells) == 5:
+            cells[3] = registry_status
+        else:
+            raise ValueError(f"Expected four or five columns for {repo}, found {len(cells)}")
+        line = " | ".join(cells)
         updated_lines.append(line)
         seen.add(repo)
-        print(f"{repo}: {count}")
+        catalog_label = "n/a" if repo in WINDOWS_APPS else "yes" if registry_status == "✅ Да" else "no"
+        print(f"{repo}: {count} ({color}), catalog: {catalog_label}")
     if seen != INSTALLERS.keys():
         raise ValueError(f"Missing download badges: {set(INSTALLERS) - seen}")
     updated = "".join(updated_lines)
@@ -95,6 +146,15 @@ def main() -> None:
     updated, replacements = COUNTER_NOTE.subn(note, updated)
     if replacements != 1:
         raise ValueError(f"Expected one counter note, found {replacements}")
+    registry_note = (
+        f"Каталог Astra: «Да» означает наличие проекта в [опубликованном индексе]({REGISTRY_URL}) "
+        f"от {catalog_date} (UTC); «Нет» — отсутствие в индексе, «—» — не плагин Astra."
+    )
+    updated, replacements = REGISTRY_NOTE.subn(registry_note, updated)
+    if replacements == 0:
+        updated = updated.replace("\n\n---\n", f"\n\n{registry_note}\n\n---\n", 1)
+    elif replacements != 1:
+        raise ValueError(f"Expected one catalog note, found {replacements}")
     if updated != original:
         README.write_text(updated, encoding="utf-8")
 
