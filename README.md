@@ -29,9 +29,9 @@
 | [VoiceTyper](https://github.com/Voltur792/VoiceTyper) | Печатает продиктованный текст в любом активном окне. | Нет | — | [![Релиз](https://img.shields.io/github/v/release/Voltur792/VoiceTyper?label=релиз)](https://github.com/Voltur792/VoiceTyper/releases/latest) [![Загрузки](https://img.shields.io/badge/downloads-9-yellow?label=%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D0%B8)](https://github.com/Voltur792/VoiceTyper/releases) |
 | [Таймер паузы](https://github.com/Voltur792/sleep-pause-timer) | Управляет воспроизведением, таймером и питанием компьютера. | Нет | — | [![Релиз](https://img.shields.io/github/v/release/Voltur792/sleep-pause-timer?label=релиз)](https://github.com/Voltur792/sleep-pause-timer/releases/latest) [![Загрузки](https://img.shields.io/badge/downloads-12-yellowgreen?label=%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D0%B8)](https://github.com/Voltur792/sleep-pause-timer/releases) |
 
-Расход ИИ — примерная оценка: фактическое число токенов зависит от модели, длины запроса и количества действий. Счётчики показывают суммарные загрузки установочных файлов из GitHub Releases (пакеты .astraplugin и ZIP приложений); скачивания ZIP репозитория и Git-клоны в них не входят. 
+Расход ИИ — примерная оценка: фактическое число токенов зависит от модели, длины запроса и количества действий. Счётчики показывают суммарные загрузки установочных файлов из GitHub Releases (пакеты .astraplugin и ZIP приложений); скачивания ZIP репозитория и Git-клоны в них не входят.
 
-Каталог Astra: «Да» означает наличие проекта в [опубликованном индексе](https://mihailinl.github.io/astra-registry/registry/v1/index.json) «Нет» — отсутствие в индексе, «—» — не плагин Astra.
+Каталог Astra: «Да» означает наличие проекта в [опубликованном индексе](https://mihailinl.github.io/astra-registry/registry/v1/index.json); «Нет» — отсутствие в индексе, «—» — не плагин Astra.
 
 ---
 

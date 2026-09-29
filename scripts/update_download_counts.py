@@ -31,11 +31,11 @@ DOWNLOAD_BADGE = re.compile(
     r"|badge/downloads-\d+-[a-z]+\?label=[^)]*)"
 )
 BADGE_LABEL = quote("загрузки")
-COUNTER_NOTE = re.compile(r"Счётчики показывают .*?в них не входят\.(?: Данные на \d{2}\.\d{2}\.\d{4} \(UTC\)\.)?")
+COUNTER_NOTE = re.compile(r"Счётчики показывают .*?в них не входят\.(?: Данные на \d{2}\.\d{2}\.\d{4} \(UTC\)\.)?[ \t]*")
 REGISTRY_NOTE = re.compile(r"Каталог Astra: .*?не плагин Astra\.")
 
 
-def registry_repositories() -> tuple[set[str], str]:
+def registry_repositories() -> set[str]:
     request = Request(
         REGISTRY_URL,
         headers={"User-Agent": "Voltur792-profile-download-counter"},
@@ -43,7 +43,6 @@ def registry_repositories() -> tuple[set[str], str]:
     with urlopen(request, timeout=30) as response:
         index = json.load(response)
     signed = index["signed"]
-    issued_at = datetime.fromisoformat(signed["issued_at"].replace("Z", "+00:00"))
     expires_at = datetime.fromisoformat(signed["expires_at"].replace("Z", "+00:00"))
     if expires_at <= datetime.now(timezone.utc):
         raise ValueError("Astra registry index has expired")
@@ -52,7 +51,7 @@ def registry_repositories() -> tuple[set[str], str]:
         for plugin in signed["plugins"]
         if plugin.get("source", {}).get("repo")
     }
-    return repositories, issued_at.strftime("%d.%m.%Y")
+    return repositories
 
 
 def installer_downloads(repo: str, pattern: re.Pattern[str]) -> int:
@@ -98,7 +97,7 @@ def download_color(count: int) -> str:
 
 def main() -> None:
     original = README.read_text(encoding="utf-8")
-    catalog_repos, catalog_date = registry_repositories()
+    catalog_repos = registry_repositories()
     updated_lines = []
     seen = set()
     for line in original.splitlines(keepends=True):
@@ -137,18 +136,17 @@ def main() -> None:
     if seen != INSTALLERS.keys():
         raise ValueError(f"Missing download badges: {set(INSTALLERS) - seen}")
     updated = "".join(updated_lines)
-    date = datetime.now(timezone.utc).strftime("%d.%m.%Y")
     note = (
         "Счётчики показывают суммарные загрузки установочных файлов из GitHub Releases "
         "(пакеты .astraplugin и ZIP приложений); скачивания ZIP репозитория и Git-клоны "
-        f"в них не входят. Данные на {date} (UTC)."
+        "в них не входят."
     )
     updated, replacements = COUNTER_NOTE.subn(note, updated)
     if replacements != 1:
         raise ValueError(f"Expected one counter note, found {replacements}")
     registry_note = (
-        f"Каталог Astra: «Да» означает наличие проекта в [опубликованном индексе]({REGISTRY_URL}) "
-        f"от {catalog_date} (UTC); «Нет» — отсутствие в индексе, «—» — не плагин Astra."
+        f"Каталог Astra: «Да» означает наличие проекта в [опубликованном индексе]({REGISTRY_URL}); "
+        "«Нет» — отсутствие в индексе, «—» — не плагин Astra."
     )
     updated, replacements = REGISTRY_NOTE.subn(registry_note, updated)
     if replacements == 0:
