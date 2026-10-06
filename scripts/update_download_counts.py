@@ -14,6 +14,7 @@ REGISTRY_URL = "https://mihailinl.github.io/astra-registry/registry/v1/index.jso
 INSTALLERS = {
     "detective-game": re.compile(r"\.astraplugin$"),
     "astra-sea-battle": re.compile(r"\.astraplugin$"),
+    "VC-Discord": re.compile(r"\.astraplugin$"),
     "astra-music": re.compile(r"\.astraplugin$"),
     "auto-assistant": re.compile(r"\.astraplugin$"),
     "browser-control": re.compile(r"\.astraplugin$"),
