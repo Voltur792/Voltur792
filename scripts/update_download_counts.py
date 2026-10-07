@@ -12,6 +12,7 @@ from urllib.request import Request, urlopen
 README = Path(__file__).resolve().parents[1] / "README.md"
 REGISTRY_URL = "https://mihailinl.github.io/astra-registry/registry/v1/index.json"
 INSTALLERS = {
+    "Mirror-upload": re.compile(r"\.astraplugin$"),
     "detective-game": re.compile(r"\.astraplugin$"),
     "astra-sea-battle": re.compile(r"\.astraplugin$"),
     "VC-Discord": re.compile(r"\.astraplugin$"),
