@@ -24,8 +24,9 @@ INSTALLERS = {
     "Y-home-f-astra": re.compile(r"\.astraplugin$"),
     "VoiceTyper": re.compile(r"^VoiceTyper-v.+-windows-x64\.zip$"),
     "sleep-pause-timer": re.compile(r"^SleepPauseTimer-v.+-windows-x64\.zip$"),
+    "supertonic-voice-builder": re.compile(r"^SupertonicVoiceBuilder-\d+\.\d+\.\d+-Windows-x64\.zip$"),
 }
-WINDOWS_APPS = {"VoiceTyper", "sleep-pause-timer"}
+WINDOWS_APPS = {"VoiceTyper", "sleep-pause-timer", "supertonic-voice-builder"}
 PROJECT_LINK = re.compile(r"\]\(https://github\.com/Voltur792/([^/)]+)\)")
 DOWNLOAD_BADGE = re.compile(
     r"https://img\.shields\.io/(?:"
