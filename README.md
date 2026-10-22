@@ -9,7 +9,7 @@
 | Игра | Что внутри | Расход ИИ | В каталоге Astra | Последний релиз / загрузки |
 | --- | --- | --- | --- | --- |
 | [Детективная игра](https://github.com/Voltur792/detective-game) | Расследуйте дела, осматривайте места и проверяйте версии — в Astra или Telegram. | Высокий | Нет | [![Релиз](https://img.shields.io/github/v/release/Voltur792/detective-game?label=релиз)](https://github.com/Voltur792/detective-game/releases/latest) [![Загрузки](https://img.shields.io/badge/downloads-4-yellow?label=%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D0%B8)](https://github.com/Voltur792/detective-game/releases) |
-| [Морской бой](https://github.com/Voltur792/astra-sea-battle) | Два режима: быстрая партия или игра против Astra на интерактивной карте. | Низкий–средний | Нет | [![Релиз](https://img.shields.io/github/v/release/Voltur792/astra-sea-battle?label=релиз)](https://github.com/Voltur792/astra-sea-battle/releases/latest) [![Загрузки](https://img.shields.io/badge/downloads-5-yellow?label=%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D0%B8)](https://github.com/Voltur792/astra-sea-battle/releases) |
+| [Морской бой](https://github.com/Voltur792/astra-sea-battle) | Три режима: быстрая игра, соперник Astra и сетевая партия. Фоновый поиск соперника, ники и оповещения. | Низкий–средний | Нет | [![Релиз](https://img.shields.io/github/v/release/Voltur792/astra-sea-battle?label=релиз)](https://github.com/Voltur792/astra-sea-battle/releases/latest) [![Загрузки](https://img.shields.io/badge/downloads-5-yellow?label=%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D0%B8)](https://github.com/Voltur792/astra-sea-battle/releases) |
 
 ## Плагины для Astra
 
