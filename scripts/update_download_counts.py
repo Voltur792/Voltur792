@@ -23,6 +23,7 @@ INSTALLERS = {
     "SPT": re.compile(r"\.astraplugin$"),
     "voice-text-input": re.compile(r"\.astraplugin$"),
     "Y-home-f-astra": re.compile(r"\.astraplugin$"),
+    "tts-for-fish-audio": re.compile(r"\.astraplugin$"),
     "VoiceTyper": re.compile(r"^VoiceTyper-v.+-windows-x64\.zip$"),
     "sleep-pause-timer": re.compile(r"^SleepPauseTimer-v.+-windows-x64\.zip$"),
     "supertonic-voice-builder": re.compile(r"^SupertonicVoiceBuilder-\d+\.\d+\.\d+-Windows-x64\.zip$"),
