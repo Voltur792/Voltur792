@@ -39,6 +39,18 @@
 
 Каталог Astra: «Да» означает наличие проекта в [опубликованном индексе](https://mihailinl.github.io/astra-registry/registry/v1/index.json); «Нет» — отсутствие в индексе, «—» — не плагин Astra.
 
+<!-- BEGIN AUTO:ISSUES -->
+## Заявки и вопросы
+
+**Открытых заявок нет — все разобранны.**
+
+Ниже — открытые заявки и всё, что обновлялось за 30 дней. Раздел ведёт автоматический процесс профиля: данные на 03.11.2026 22:06 UTC.
+
+| Репозиторий | Заявка | Автор | Создана | Обновлено | Ответов | Статус |
+| --- | --- | --- | --- | --- | --- | --- |
+| astra-music | [Astra Music](https://github.com/Voltur792/astra-music/issues/2) | Mezaday | 2026-11-01 | 2026-11-03 | 8 | ✅ закрыта |
+| SPT | [Astra plugin registry: your listing needs to be bound to a Minice acc…](https://github.com/Voltur792/SPT/issues/1) | mihailinl | 2026-10-16 | 2026-10-21 | 1 | ✅ закрыта |
+<!-- END AUTO:ISSUES -->
 ---
 
 [Поддержать разработку на Boosty](https://boosty.to/voltur/donate)
