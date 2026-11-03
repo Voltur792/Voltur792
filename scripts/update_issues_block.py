@@ -1,10 +1,11 @@
 """Refresh the auto-managed issue board in the profile README, alert Telegram.
 
 Open issues plus anything updated in the last LOOKBACK_DAYS are listed in a
-marked block of README.md. Issues that were not present in the previous block
-are also sent to Telegram when TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID are set.
-The previous README block doubles as the "already announced" state, so no
-extra storage is needed and a re-run after a failure cannot spam duplicates.
+marked block of README.md. That block doubles as the alert ledger: the run
+compares the stored "comments" and status columns against live GitHub data and
+sends Telegram alerts for new issues, new comments and status changes. No extra
+state file is needed; the trade-off is at-least-once delivery (if the commit
+fails after a message was sent, the next run repeats it).
 """
 
 import json
@@ -25,8 +26,9 @@ TITLE_LIMIT = 70
 BEGIN = "<!-- BEGIN AUTO:ISSUES -->"
 END = "<!-- END AUTO:ISSUES -->"
 BLOCK = re.compile(re.escape(BEGIN) + r".*?" + re.escape(END), re.DOTALL)
-ISSUE_URL = re.compile(r"https://github\.com/Voltur792/[^/)]+/issues/\d+")
 TIMESTAMP = re.compile(r"данные на \d{2}\.\d{2}\.\d{4} \d{2}:\d{2} UTC")
+ROW_URL = re.compile(r"\((?P<url>https://github\.com/Voltur792/[^/)]+/issues/\d+)\)")
+CELL_SPLIT = re.compile(r"(?<!\\)\|")
 
 
 def signature(text: str) -> str:
@@ -124,38 +126,124 @@ def render(issues: list[dict]) -> str:
                 f"| {state} |"
             )
     else:
-        lines.append("За последние {} дней заявок не было.".format(LOOKBACK_DAYS))
+        lines.append(f"За последние {LOOKBACK_DAYS} дней заявок не было.")
     lines.append(END)
     return "\n".join(lines)
 
 
-def telegram_text(new_issues: list[dict]) -> str:
-    def esc(value: str) -> str:
-        return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+def parse_seen(text: str) -> dict | None:
+    """Read the previous block: issue URL -> {"comments": n, "closed": bool}. None = no block."""
+    match = BLOCK.search(text)
+    if not match:
+        return None
+    seen: dict[str, dict] = {}
+    for line in match.group(0).splitlines():
+        url = ROW_URL.search(line)
+        if not url:
+            continue
+        cells = [c.strip() for c in CELL_SPLIT.split(line) if c.strip()]
+        if len(cells) < 7:
+            print(f"Ignoring unreadable block row: {line[:80]}")
+            continue
+        try:
+            comments = int(cells[5])
+        except ValueError:
+            print(f"Ignoring row with a non-numeric answer count: {line[:80]}")
+            continue
+        seen[url.group("url")] = {"comments": comments, "closed": "закрыта" in cells[-1]}
+    return seen
 
-    head = (
-        f"🆕 Новые заявки на GitHub ({len(new_issues)})"
-        if len(new_issues) > 1
-        else "🆕 Новая заявка на GitHub"
-    )
-    rows = [head, ""]
-    for issue in new_issues[:MAX_ALERTS]:
-        state = "открыта" if issue["state"] == "open" else "закрыта"
-        rows.append(
-            f"• <b>{esc(issue['repo'])} #{issue['number']}</b> — {esc(cell(issue['title']))}"
-            f"\n  от {esc(issue['author'])}, {state}, ответов {issue['comments']}"
-            f"\n  {issue['url']}"
+
+def classify(issues: list[dict], seen: dict | None) -> tuple[list, list, list]:
+    new: list[dict] = []
+    commented: list[tuple[dict, int]] = []
+    state_changed: list[dict] = []
+    if seen is None:
+        return new, commented, state_changed
+    for issue in issues:
+        previous = seen.get(issue["url"])
+        if previous is None:
+            new.append(issue)
+            continue
+        if issue["comments"] > previous["comments"]:
+            commented.append((issue, issue["comments"] - previous["comments"]))
+        if (issue["state"] == "closed") != previous["closed"]:
+            state_changed.append(issue)
+    return new, commented, state_changed
+
+
+def comment_anchor(issue: dict) -> str:
+    """Deep link to the newest comment; fall back to the plain issue link."""
+    page = max(1, -(-issue["comments"] // 100))
+    try:
+        payload = api_get(
+            f"/repos/{OWNER}/{issue['repo']}/issues/{issue['number']}/comments",
+            {"per_page": 100, "page": page},
         )
-    if len(new_issues) > MAX_ALERTS:
-        rows.append(f"… и ещё {len(new_issues) - MAX_ALERTS} (см. профиль)")
-    return "\n".join(rows)
+        if isinstance(payload, list) and payload:
+            return f"{issue['url']}#issuecomment-{payload[-1]['id']}"
+    except Exception as error:  # the deep link is only a convenience
+        print(f"Comment anchor lookup failed for {issue['repo']}#{issue['number']}: {error}")
+    return issue["url"]
+
+
+def esc(value: str) -> str:
+    return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def alert_text(new: list, commented: list, state_changed: list) -> str:
+    sections: list[str] = []
+
+    if new:
+        head = f"🆕 Новые заявки ({len(new)})" if len(new) > 1 else "🆕 Новая заявка"
+        rows = [head]
+        for issue in new[:MAX_ALERTS]:
+            state = "открыта" if issue["state"] == "open" else "закрыта"
+            rows.append(
+                f"• <b>{esc(issue['repo'])} #{issue['number']}</b> — {esc(cell(issue['title']))}"
+                f"\n  от {esc(issue['author'])}, {state}, ответов {issue['comments']}"
+                f"\n  {issue['url']}"
+            )
+        if len(new) > MAX_ALERTS:
+            rows.append(f"… и ещё {len(new) - MAX_ALERTS} (см. профиль)")
+        sections.append("\n".join(rows))
+
+    if commented:
+        total = sum(delta for _issue, delta in commented)
+        rows = [f"💬 Новые комментарии ({total})"]
+        for issue, delta in commented[:MAX_ALERTS]:
+            rows.append(
+                f"• <b>{esc(issue['repo'])} #{issue['number']}</b> — "
+                f"<a href=\"{comment_anchor(issue)}\">{esc(cell(issue['title']))}</a>"
+                f"\n  +{delta} новых ответов, всего {issue['comments']}"
+                f"\n  заявка от {esc(issue['author'])}, "
+                f"{'открыта' if issue['state'] == 'open' else 'закрыта'}"
+            )
+        if len(commented) > MAX_ALERTS:
+            rows.append(f"… и ещё {len(commented) - MAX_ALERTS} (см. профиль)")
+        sections.append("\n".join(rows))
+
+    if state_changed:
+        rows = ["🔒 Изменился статус заявок"]
+        for issue in state_changed[:MAX_ALERTS]:
+            verb = "закрыта" if issue["state"] == "closed" else "снова открыта"
+            rows.append(
+                f"• <b>{esc(issue['repo'])} #{issue['number']}</b> — {esc(cell(issue['title']))}"
+                f"\n  {verb}, ответов {issue['comments']}"
+                f"\n  {issue['url']}"
+            )
+        sections.append("\n".join(rows))
+
+    return "\n\n".join(sections)
 
 
 def send_telegram(text: str) -> bool:
     token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     chat = os.getenv("TELEGRAM_CHAT_ID", "").strip()
     if not token or not chat:
-        print("Telegram secrets are not set — alert skipped.")
+        print("Telegram secrets TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID are not set — "
+              "message NOT sent. It would look like this:")
+        print(re.sub(r"<[^>]+>", "", text))
         return False
     body = urlencode({"chat_id": chat, "text": text, "parse_mode": "HTML"}).encode()
     request = Request(
@@ -173,11 +261,11 @@ def send_telegram(text: str) -> bool:
 
 def main() -> int:
     original = README.read_text(encoding="utf-8")
+    seen = parse_seen(original)
     issues = collect()
     new_block = render(issues)
-    announced = set(ISSUE_URL.findall(original)) if BLOCK.search(original) else None
 
-    if BLOCK.search(original):
+    if seen is not None:
         updated = BLOCK.sub(lambda _m: new_block, original, count=1)
     else:
         for anchor in ("\n---\n", "\n[Поддержать разработку на Boosty]"):
@@ -186,8 +274,8 @@ def main() -> int:
                 break
         else:
             updated = original.rstrip() + "\n\n" + new_block + "\n"
-        print("Issue block not found — inserted it; existing issues are not alerted "
-              "(first run only seeds the block).")
+        print("Issue block not found — inserting it; existing issues are not alerted "
+              "(the first run only seeds the ledger).")
 
     if signature(updated) != signature(original):
         README.write_text(updated, encoding="utf-8")
@@ -195,15 +283,19 @@ def main() -> int:
     else:
         print("README.md issue block unchanged.")
 
-    pending = [i for i in issues if announced is None or i["url"] not in announced]
-    if announced is None:
+    new, commented, state_changed = classify(issues, seen)
+    if seen is None:
         print(f"Seeded {len(issues)} issues without Telegram alerts.")
-    elif pending:
-        send_telegram(telegram_text(pending))
+    elif new or commented or state_changed:
+        print(f"Alerts: {len(new)} new, {len(commented)} with new comments, "
+              f"{len(state_changed)} status changes.")
+        send_telegram(alert_text(new, commented, state_changed))
     else:
-        print("No new issues since the last run.")
+        print("No new issues, comments or status changes since the last run.")
+
     for issue in issues:
-        print(f"  {issue['repo']}#{issue['number']} [{issue['state']}] {issue['title']}")
+        print(f"  {issue['repo']}#{issue['number']} [{issue['state']}] "
+              f"{issue['comments']} отв. — {issue['title']}")
     return 0
 
 
