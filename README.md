@@ -44,11 +44,11 @@
 
 **Открытых заявок: 1.**
 
-Ниже — открытые заявки и всё, что обновлялось за 30 дней. Раздел ведёт автоматический процесс профиля: данные на 03.11.2026 22:38 UTC.
+Ниже — открытые заявки и всё, что обновлялось за 30 дней. Раздел ведёт автоматический процесс профиля: данные на 03.11.2026 22:44 UTC.
 
 | Репозиторий | Заявка | Автор | Создана | Обновлено | Ответов | Статус |
 | --- | --- | --- | --- | --- | --- | --- |
-| astra-music | [Тестовая заявка](https://github.com/Voltur792/astra-music/issues/3) | Voltur792 | 2026-11-03 | 2026-11-03 | 0 | 🔴 открыта |
+| astra-music | [Тестовая заявка](https://github.com/Voltur792/astra-music/issues/3) | Voltur792 | 2026-11-03 | 2026-11-03 | 2 | 🔴 открыта |
 | astra-music | [Astra Music](https://github.com/Voltur792/astra-music/issues/2) | Mezaday | 2026-11-01 | 2026-11-03 | 8 | ✅ закрыта |
 | SPT | [Astra plugin registry: your listing needs to be bound to a Minice acc…](https://github.com/Voltur792/SPT/issues/1) | mihailinl | 2026-10-16 | 2026-10-21 | 1 | ✅ закрыта |
 <!-- END AUTO:ISSUES -->
